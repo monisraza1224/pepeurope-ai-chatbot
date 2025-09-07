@@ -10,7 +10,9 @@ app.use(express.json());
 app.use(cors());
 
 // ==== REPLACE THESE VALUES WITH YOURS ====
-const OPENAI_API_KEY = "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"; // Get from https://platform.openai.com/api-keys
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, // <- CORRECT. No quotes, just the variable.
+});
 const WC_STORE_URL = "https://pepeurope.net"; // Your store URL
 const WC_CONSUMER_KEY = "ck_aa49d81a34f421cd81b0caa77edd3c3feefccc1d"; // From WooCommerce REST API
 const WC_CONSUMER_SECRET = "cs_f24f3c26f9cd6d04f6121dbd975066ae7ca24bbb"; // From WooCommerce REST API
