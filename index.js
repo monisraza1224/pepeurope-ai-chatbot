@@ -11,11 +11,11 @@ app.use(cors());
 
 // ==== REPLACE THESE VALUES WITH YOURS ====
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // <- CORRECT. No quotes, just the variable.
+  apiKey: process.env.OPENAI_API_KEY, // Read from environment variable
 });
-const WC_STORE_URL = "https://pepeurope.net"; // Your store URL
-const WC_CONSUMER_KEY = "ck_aa49d81a34f421cd81b0caa77edd3c3feefccc1d"; // From WooCommerce REST API
-const WC_CONSUMER_SECRET = "cs_f24f3c26f9cd6d04f6121dbd975066ae7ca24bbb"; // From WooCommerce REST API
+const WC_STORE_URL = "https://pepeurope.net";
+const WC_CONSUMER_KEY = "ck_aa49d81a34f421cd81b0caa77edd3c3feefccc1d";
+const WC_CONSUMER_SECRET = "cs_f24f3c26f9cd6d04f6121dbd975066ae7ca24bbb";
 // ==========================================
 
 const WooCommerce = new WooCommerceRestApi({
@@ -25,9 +25,10 @@ const WooCommerce = new WooCommerceRestApi({
   version: 'wc/v3'
 });
 
-const openai = new OpenAI({
-  apiKey: OPENAI_API_KEY, // Now using hardcoded value
-});
+// 🚨 DELETE THIS DUPLICATE BLOCK 🚨
+// const openai = new OpenAI({
+//   apiKey: OPENAI_API_KEY,
+// });
 
 app.post('/api/chat', async (req, res) => {
   try {
