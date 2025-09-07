@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: pepeurope-chatbot
+    plan: free
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /health
+    # REMOVE THE envVars SECTION FROM HERE
