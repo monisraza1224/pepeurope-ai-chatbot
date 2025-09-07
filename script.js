@@ -22,9 +22,9 @@ async function sendMessage() {
     addMessage(message, 'user');
     userInput.value = '';
 
-    // Send message to your backend server
+    // Send message to your backend server (UPDATED URL)
     try {
-        const response = await fetch('http://localhost:3000/api/chat', {
+        const response = await fetch('https://pepeurope-ai-chatbot.onrender.com/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
