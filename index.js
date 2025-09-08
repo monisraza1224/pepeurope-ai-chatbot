@@ -254,7 +254,7 @@ Get customized recommendations based on your specific goals.
 - Research peptide uses
 - Personalized recommendations
 
-📝 **Remember:** All products are for research/educational purposes only.
+📝 **Remember:** All the suggested products are for live and available on the store.
 
 Type "calculator" to get started or ask me anything!`;
 
