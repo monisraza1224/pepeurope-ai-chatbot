@@ -11,10 +11,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@woocommerce/woocommerce-rest-api": "^1.0.2",
+    "@woocommerce/woocommerce-rest-api": "^1.0.1",
     "cors": "^2.8.5",
     "express": "^4.18.2",
-    "openai": "^4.20.1"
+    "openai": "^3.3.0"
   },
   "engines": {
     "node": ">=18.0.0"
