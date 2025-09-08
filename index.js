@@ -1,5 +1,5 @@
 const express = require('express');
-const OpenAI = require('openai');
+const { Configuration, OpenAIApi } = require('openai');
 const WooCommerceRestApi = require("@woocommerce/woocommerce-rest-api").default;
 const cors = require('cors');
 
@@ -18,10 +18,11 @@ const WooCommerce = new WooCommerceRestApi({
   version: 'wc/v3'
 });
 
-// Initialize OpenAI
-const openai = new OpenAI({
+// Initialize OpenAI - CORRECT SYNTAX
+const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
+const openai = new OpenAIApi(configuration);
 
 // Predefined product recommendations for the calculator
 const productRecommendations = {
@@ -62,24 +63,22 @@ const productRecommendations = {
         description: "Advanced research compound for body composition"
       }
     ]
-  },
-  muscleGain: [
-    { 
-      name: "GHRP-6", 
-      url: "https://pepeurope.net/en/product/ghrp-6-5mg/", 
-      price: "€67.99",
-      description: "For muscle growth and recovery research"
-    }
-  ],
-  wellness: [
-    { 
-      name: "BPC-157", 
-      url: "https://pepeurope.net/en/product/bpc-157-5mg/", 
-      price: "€61.99",
-      description: "For wellness and recovery research"
-    }
-  ]
+  }
 };
+
+// Function to get products from WooCommerce
+async function getWebsiteProducts() {
+  try {
+    const response = await WooCommerce.get("products", {
+      per_page: 50,
+      status: 'publish'
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return [];
+  }
+}
 
 // AI Quiz/Calculator Function
 function calculateProductRecommendation(userData) {
@@ -94,14 +93,7 @@ function calculateProductRecommendation(userData) {
   if (weeklyGoal > 1.5) intensity = 'advanced';
   
   // Get recommended products
-  let recommendedProducts = [];
-  if (goalType === 'weight_loss') {
-    recommendedProducts = productRecommendations.weightLoss[intensity] || productRecommendations.weightLoss.beginner;
-  } else if (goalType === 'muscle_gain') {
-    recommendedProducts = productRecommendations.muscleGain;
-  } else {
-    recommendedProducts = productRecommendations.wellness;
-  }
+  const recommendedProducts = productRecommendations.weightLoss[intensity] || productRecommendations.weightLoss.beginner;
   
   // Create personalized message
   let response = `🎯 **Personalized Recommendation Based on Your Goals** 🎯\n\n`;
@@ -182,9 +174,23 @@ Just type your answers in the format above 👆`;
       `- ${p.name}: €${p.price} | ${p.permalink}`
     ).join('\n');
 
-    const systemPrompt = `You are PepEurope Research Assistant...`; // Your existing prompt
+    const systemPrompt = `You are PepEurope Research Assistant. You provide information about research peptides for educational purposes.
 
-    const completion = await openai.chat.completions.create({
+ABSOLUTE RULES:
+1. ONLY recommend products that exist in the PRODUCT LIST below
+2. NEVER make up products, prices, or URLs
+3. When recommending products, use EXACT URLs from the list
+4. All products are for RESEARCH/EDUCATIONAL purposes only - no medical advice
+5. If unsure, direct to email: sales@pepeurope.net
+6. Keep responses professional and concise
+
+PRODUCT LIST:
+${productKnowledge}
+
+Respond helpfully and professionally:`;
+
+    // CORRECT OpenAI API call
+    const completion = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
       messages: [
         {
@@ -200,7 +206,8 @@ Just type your answers in the format above 👆`;
       temperature: 0.7
     });
 
-    res.json({ reply: completion.choices[0].message.content });
+    const aiResponse = completion.data.choices[0].message.content;
+    res.json({ reply: aiResponse });
 
   } catch (error) {
     console.error("Server Error:", error);
