@@ -10,7 +10,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors());
 
-// Initialize WooCommerce API - Uses Render environment variables
+// Initialize WooCommerce API
 const WooCommerce = new WooCommerceRestApi({
   url: process.env.WC_STORE_URL || "https://pepeurope.net",
   consumerKey: process.env.WC_CONSUMER_KEY || "ck_aa49d81a34f421cd81b0caa77edd3c3feefccc1d",
@@ -18,100 +18,158 @@ const WooCommerce = new WooCommerceRestApi({
   version: 'wc/v3'
 });
 
-// Initialize OpenAI - Uses Render environment variable
+// Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Company Data from your information
-const companyData = {
-  info: {
-    website: "https://pepeurope.net/en/",
-    email: "sales@pepeurope.net",
-    phone: "+420604690134",
-    address: "182-184 High Street North, East Ham, London, UK, E6 2JA",
-    telegram: "Available 24/7 for support"
+// Product Database with categories
+const products = {
+  weightLoss: {
+    beginner: [
+      { name: "AOD-9604 5mg", url: "https://pepeurope.net/en/product/aod-9604-5mg/", price: "€59.99" },
+      { name: "Metabo MIC Energy", url: "https://pepeurope.net/en/product/metabo-mic-energy/", price: "€65.99" }
+    ],
+    advanced: [
+      { name: "RetaTirz Complex 10 mg", url: "https://pepeurope.net/product/retatirz-complex-weight-10mg/", price: "€89.99" },
+      { name: "Survo 12 mg", url: "https://pepeurope.net/product/survo-12mg/", price: "€79.99" }
+    ],
+    extreme: [
+      { name: "Tesamorelin 5mg", url: "https://pepeurope.net/en/product/tesamorelin-5mg/", price: "€72.99" },
+      { name: "CJC-1295 + IPA", url: "https://pepeurope.net/en/product/cjc-1295-ipamorelin-5mg/", price: "€84.99" }
+    ]
   },
-  policies: {
-    shipping: "Orders before 12:00 PM PST ship same day. International shipping available. Tracking provided.",
-    returns: "14-day returns for unopened products. Contact sales@pepeurope.net for returns.",
-    disclaimer: "All products are for research/educational purposes only. No medical advice provided."
-  },
-  productCategories: {
-    slimmingPeptides: "https://pepeurope.net/en/product-category/slimming-peptides/",
-    longevityPeptides: "https://pepeurope.net/en/product-category/slimming-peptides/?product_cat=peptydy-longlife",
-    weightLossPeptides: "https://pepeurope.net/en/product-category/slimming-peptides/?product_cat=weight-loss-peptides",
-    allProducts: "https://pepeurope.net/en/product-category/slimming-peptides/?product_cat=wszystkie-produkty",
-    inStock: "https://pepeurope.net/en/product-category/slimming-peptides/?product_cat=wszystkie-produkty&stock=instock",
-    onSale: "https://pepeurope.net/en/product-category/slimming-peptides/?product_cat=wszystkie-produkty&stock=instock&onsales=salesonly"
-  }
+  muscleGain: [
+    { name: "GHRP-6", url: "https://pepeurope.net/en/product/ghrp-6-5mg/", price: "€67.99" },
+    { name: "MK-677", url: "https://pepeurope.net/en/product/mk-677-25mg/", price: "€74.99" }
+  ],
+  wellness: [
+    { name: "BPC-157", url: "https://pepeurope.net/en/product/bpc-157-5mg/", price: "€61.99" },
+    { name: "Thymosin Beta 4", url: "https://pepeurope.net/en/product/thymosin-beta-4-tb-500-5mg/", price: "€69.99" }
+  ]
 };
 
-// Function to get products from WooCommerce
-async function getWebsiteProducts() {
-  try {
-    const response = await WooCommerce.get("products", {
-      per_page: 50,
-      status: 'publish'
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    return [];
+// AI Quiz System
+async function runAICalculator(userData) {
+  const { currentWeight, goalWeight, timeframe, goalType, experience } = userData;
+  
+  const weightToLose = currentWeight - goalWeight;
+  const weeklyGoal = weightToLose / timeframe;
+  
+  let intensity = 'beginner';
+  if (weeklyGoal > 1.5) intensity = 'advanced';
+  if (weeklyGoal > 2.5) intensity = 'extreme';
+  
+  let recommendedProducts = [];
+  
+  if (goalType === 'weight_loss') {
+    recommendedProducts = products.weightLoss[intensity] || products.weightLoss.beginner;
+  } else if (goalType === 'muscle_gain') {
+    recommendedProducts = products.muscleGain;
+  } else {
+    recommendedProducts = products.wellness;
   }
+  
+  // Create product list for AI
+  const productList = recommendedProducts.map(p => 
+    `- ${p.name}: ${p.price} | ${p.url}`
+  ).join('\n');
+  
+  const systemPrompt = `
+You are PepEurope's AI Fitness Calculator. Based on user data, recommend products and create a personalized plan.
+
+USER DATA:
+- Current Weight: ${currentWeight} kg
+- Goal Weight: ${goalWeight} kg  
+- Timeframe: ${timeframe} weeks
+- Weight to lose: ${weightToLose} kg
+- Weekly goal: ${weeklyGoal.toFixed(1)} kg/week
+- Goal Type: ${goalType}
+- Experience: ${experience}
+
+RECOMMENDED PRODUCTS:
+${productList}
+
+Create a personalized response that:
+1. Acknowledges their goal of losing ${weightToLose} kg in ${timeframe} weeks
+2. Explains this is ${intensity} intensity (${weeklyGoal.toFixed(1)} kg/week)
+3. Recommends 2-3 specific products from the list above with URLs
+4. Provides brief educational information about each product
+5. Mentions this is for research purposes only
+6. Encourages consulting healthcare professionals
+7. Keep it warm, professional, and encouraging
+
+Response format: Use bullet points and product links.`;
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [
+      {
+        role: "system",
+        content: systemPrompt
+      },
+      {
+        role: "user",
+        content: "Create my personalized plan based on the data above."
+      }
+    ],
+    max_tokens: 300,
+    temperature: 0.7
+  });
+
+  return completion.choices[0].message.content;
 }
 
-// API endpoint for chat
+// API Endpoints
 app.post('/api/chat', async (req, res) => {
   try {
     const userMessage = req.body.message;
-    const products = await getWebsiteProducts();
+    
+    // Check if user wants to start quiz
+    if (userMessage.toLowerCase().includes('calculator') || 
+        userMessage.toLowerCase().includes('quiz') ||
+        userMessage.toLowerCase().includes('recommend') ||
+        userMessage.toLowerCase().includes('weight loss plan')) {
+      
+      const quizResponse = `🎯 **Personalized Product Calculator** 🎯
 
-    // Create product knowledge string
+I'd love to help you find the perfect research products! Let's run a quick assessment:
+
+1. **Current Weight** (kg): 
+2. **Goal Weight** (kg):
+3. **Timeframe** (weeks): 
+4. **Main Goal**: weight_loss / muscle_gain / wellness
+5. **Experience Level**: beginner / intermediate / advanced
+
+Just reply with your answers like: "85, 70, 12, weight_loss, beginner"`;
+
+      return res.json({ reply: quizResponse, isQuiz: true });
+    }
+
+    // Check if user is providing quiz answers
+    if (userMessage.match(/^\d+,\s*\d+,\s*\d+,\s*\w+,\s*\w+$/)) {
+      const [currentWeight, goalWeight, timeframe, goalType, experience] = 
+        userMessage.split(',').map(item => item.trim());
+      
+      const userData = {
+        currentWeight: parseInt(currentWeight),
+        goalWeight: parseInt(goalWeight),
+        timeframe: parseInt(timeframe),
+        goalType: goalType.toLowerCase(),
+        experience: experience.toLowerCase()
+      };
+      
+      const aiResponse = await runAICalculator(userData);
+      return res.json({ reply: aiResponse });
+    }
+
+    // Regular chat
+    const products = await getWebsiteProducts();
     const productKnowledge = products.map(p => 
       `- ${p.name}: €${p.price} | ${p.permalink}`
     ).join('\n');
 
-    // System Prompt with all your data
-    const systemPrompt = `
-You are PepEurope Research Assistant. You provide information about research peptides for educational purposes.
-
-ABSOLUTE RULES:
-1. ONLY recommend products that exist in the PRODUCT LIST below
-2. NEVER make up products, prices, or URLs
-3. When recommending products, use EXACT URLs from the list
-4. All products are for RESEARCH/EDUCATIONAL purposes only - no medical advice
-5. If unsure, direct to email: ${companyData.info.email}
-6. Keep responses professional and concise
-
-COMPANY INFORMATION:
-- Website: ${companyData.info.website}
-- Email: ${companyData.info.email}
-- Phone: ${companyData.info.phone}
-- Address: ${companyData.info.address}
-- Telegram: ${companyData.info.telegram}
-
-SHIPPING POLICY:
-${companyData.policies.shipping}
-
-RETURN POLICY:
-${companyData.policies.returns}
-
-PRODUCT CATEGORIES:
-- Slimming Peptides: ${companyData.productCategories.slimmingPeptides}
-- Longevity Peptides: ${companyData.productCategories.longevityPeptides}
-- Weight Loss Peptides: ${companyData.productCategories.weightLossPeptides}
-- All Products: ${companyData.productCategories.allProducts}
-- In Stock: ${companyData.productCategories.inStock}
-- On Sale: ${companyData.productCategories.onSale}
-
-PRODUCT LIST:
-${productKnowledge}
-
-DISCLAIMER:
-${companyData.policies.disclaimer}
-
-Respond helpfully and professionally:`;
+    const systemPrompt = `You are PepEurope Research Assistant...`; // Keep your existing prompt
 
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
@@ -129,8 +187,7 @@ Respond helpfully and professionally:`;
       temperature: 0.7
     });
 
-    const aiResponse = completion.choices[0].message.content;
-    res.json({ reply: aiResponse });
+    res.json({ reply: completion.choices[0].message.content });
 
   } catch (error) {
     console.error("Server Error:", error);
@@ -138,10 +195,11 @@ Respond helpfully and professionally:`;
   }
 });
 
+// Health check
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
 app.listen(port, '0.0.0.0', () => {
-  console.log(`PepEurope AI server running on port ${port}`);
+  console.log(`PepEurope AI Calculator running on port ${port}`);
 });
