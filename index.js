@@ -12,9 +12,9 @@ app.use(cors());
 
 // Initialize WooCommerce API - Uses Render environment variables
 const WooCommerce = new WooCommerceRestApi({
-    url: process.env.WC_STORE_URL || "https://pepeurope.net",  // ← CORRECT
-  consumerKey: process.env.ck_aa49d81a34f421cd81b0caa77edd3c3feefccc1d,
-  consumerSecret: process.env.cs_f24f3c26f9cd6d04f6121dbd975066ae7ca24bbb,
+  url: process.env.WC_STORE_URL || "https://pepeurope.net",
+  consumerKey: process.env.WC_CONSUMER_KEY || "ck_aa49d81a34f421cd81b0caa77edd3c3feefccc1d",
+  consumerSecret: process.env.WC_CONSUMER_SECRET || "cs_f24f3c26f9cd6d04f6121dbd975066ae7ca24bbb",
   version: 'wc/v3'
 });
 
