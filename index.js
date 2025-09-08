@@ -63,7 +63,23 @@ const productRecommendations = {
         description: "Advanced research compound for body composition"
       }
     ]
-  }
+  },
+  muscleGain: [
+    { 
+      name: "GHRP-6", 
+      url: "https://pepeurope.net/en/product/ghrp-6-5mg/", 
+      price: "€67.99",
+      description: "For muscle growth and recovery research"
+    }
+  ],
+  wellness: [
+    { 
+      name: "BPC-157", 
+      url: "https://pepeurope.net/en/product/bpc-157-5mg/", 
+      price: "€61.99",
+      description: "For wellness and recovery research"
+    }
+  ]
 };
 
 // Function to get products from WooCommerce
@@ -93,7 +109,14 @@ function calculateProductRecommendation(userData) {
   if (weeklyGoal > 1.5) intensity = 'advanced';
   
   // Get recommended products
-  const recommendedProducts = productRecommendations.weightLoss[intensity] || productRecommendations.weightLoss.beginner;
+  let recommendedProducts = [];
+  if (goalType === 'weight_loss') {
+    recommendedProducts = productRecommendations.weightLoss[intensity] || productRecommendations.weightLoss.beginner;
+  } else if (goalType === 'muscle_gain') {
+    recommendedProducts = productRecommendations.muscleGain;
+  } else {
+    recommendedProducts = productRecommendations.wellness;
+  }
   
   // Create personalized message
   let response = `🎯 **Personalized Recommendation Based on Your Goals** 🎯\n\n`;
@@ -108,7 +131,7 @@ function calculateProductRecommendation(userData) {
   
   recommendedProducts.forEach(product => {
     response += `• **${product.name}** (${product.price}) - ${product.description}\n`;
-    response += `  🔗 ${product.url}\n\n`;
+    response += `  🔗 <a href="${product.url}" target="_blank" class="product-link">View Product</a>\n\n`;
   });
   
   response += `📝 **Note:** These products are for research purposes only. Always consult with healthcare professionals before starting any research program.\n\n`;
@@ -123,7 +146,7 @@ app.post('/api/chat', async (req, res) => {
     const userMessage = req.body.message;
     
     // Check if user wants to start quiz/calculator
-    const quizTriggers = ['calculator', 'quiz', 'recommend', 'weight loss', 'personalized', 'lose weight', 'goal'];
+    const quizTriggers = ['calculator', 'quiz', 'recommend', 'weight loss', 'personalized', 'lose weight', 'goal', 'diet', 'fitness'];
     const wantsQuiz = quizTriggers.some(trigger => userMessage.toLowerCase().includes(trigger));
     
     if (wantsQuiz) {
@@ -152,7 +175,7 @@ Just type your answers in the format above 👆`;
         userMessage.split(',').map(item => item.trim());
       
       // Validate inputs
-      if (currentWeight <= goalWeight) {
+      if (currentWeight <= goalWeight && goalType === 'weight_loss') {
         return res.json({ reply: "Please ensure your current weight is higher than your goal weight for weight loss goals." });
       }
       
@@ -183,6 +206,7 @@ ABSOLUTE RULES:
 4. All products are for RESEARCH/EDUCATIONAL purposes only - no medical advice
 5. If unsure, direct to email: sales@pepeurope.net
 6. Keep responses professional and concise
+7. Be helpful and friendly
 
 PRODUCT LIST:
 ${productKnowledge}
@@ -215,11 +239,36 @@ Respond helpfully and professionally:`;
   }
 });
 
+// Welcome message endpoint
+app.get('/api/welcome', (req, res) => {
+  const welcomeMessage = `👋 **Welcome to PepEurope Research Assistant!** 
+
+I'm here to help you with research peptide information and product recommendations.
+
+🎯 **Personalized Product Calculator Available!**
+Get customized recommendations based on your specific goals.
+
+💡 **You can ask me about:**
+- Product information and prices
+- Shipping and returns policy
+- Research peptide uses
+- Personalized recommendations
+
+📝 **Remember:** All products are for research/educational purposes only.
+
+Type "calculator" to get started or ask me anything!`;
+
+  res.json({ reply: welcomeMessage });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
 app.listen(port, '0.0.0.0', () => {
-  console.log(`PepEurope AI server with calculator running on port ${port}`);
+  console.log(`✅ PepEurope AI server running on port ${port}`);
+  console.log(`✅ Calculator feature: ACTIVE`);
+  console.log(`✅ Welcome message: ENABLED`);
+  console.log(`✅ WooCommerce connection: READY`);
 });
