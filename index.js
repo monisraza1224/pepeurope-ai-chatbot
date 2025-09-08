@@ -32,13 +32,13 @@ const productRecommendations = {
         name: "AOD-9604 5mg", 
         url: "https://pepeurope.net/en/product/aod-9604-5mg/", 
         price: "€59.99",
-        description: "Supports metabolism and fat loss research"
+        description: "Supports metabolism and fat loss"
       },
       { 
         name: "Metabo MIC Energy", 
         url: "https://pepeurope.net/en/product/metabo-mic-energy/", 
         price: "€65.99",
-        description: "For energy and metabolic support research"
+        description: "For energy and metabolic support"
       }
     ],
     intermediate: [
@@ -46,7 +46,7 @@ const productRecommendations = {
         name: "RetaTirz Complex 10 mg", 
         url: "https://pepeurope.net/product/retatirz-complex-weight-10mg/", 
         price: "€89.99",
-        description: "Advanced formula for weight management research"
+        description: "Advanced formula for weight management"
       }
     ],
     advanced: [
@@ -54,13 +54,13 @@ const productRecommendations = {
         name: "Survo 12 mg", 
         url: "https://pepeurope.net/product/survo-12mg/", 
         price: "€79.99",
-        description: "For intensive weight management research"
+        description: "For intensive weight management"
       },
       { 
         name: "Tesamorelin 5mg", 
         url: "https://pepeurope.net/en/product/tesamorelin-5mg/", 
         price: "€72.99",
-        description: "Advanced research compound for body composition"
+        description: "Advanced compound for body composition"
       }
     ]
   },
@@ -69,7 +69,7 @@ const productRecommendations = {
       name: "GHRP-6", 
       url: "https://pepeurope.net/en/product/ghrp-6-5mg/", 
       price: "€67.99",
-      description: "For muscle growth and recovery research"
+      description: "For muscle growth and recovery"
     }
   ],
   wellness: [
@@ -77,7 +77,7 @@ const productRecommendations = {
       name: "BPC-157", 
       url: "https://pepeurope.net/en/product/bpc-157-5mg/", 
       price: "€61.99",
-      description: "For wellness and recovery research"
+      description: "For wellness and recovery"
     }
   ]
 };
@@ -127,15 +127,20 @@ function calculateProductRecommendation(userData) {
   response += `- Weight to lose: ${weightToLose} kg (${weeklyGoal.toFixed(1)} kg/week)\n`;
   response += `- Intensity: ${intensity} level\n\n`;
   
-  response += `💡 **Recommended Research Products:**\n\n`;
+  response += `💡 **Recommended Premium Products:**\n\n`;
   
   recommendedProducts.forEach(product => {
     response += `• **${product.name}** (${product.price}) - ${product.description}\n`;
     response += `  🔗 <a href="${product.url}" target="_blank" class="product-link">View Product</a>\n\n`;
   });
   
-  response += `📝 **Note:** These products are for research purposes only. Always consult with healthcare professionals before starting any research program.\n\n`;
-  response += `Need more specific advice? Email us at sales@pepeurope.net`;
+  response += `🌟 **Why choose PepEurope?**\n`;
+  response += `- Pharmaceutical-grade quality\n`;
+  response += `- Third-party tested for purity\n`;
+  response += `- Fast worldwide shipping\n`;
+  response += `- Expert customer support\n\n`;
+  
+  response += `💬 **Have questions?** Our specialists are available at sales@pepeurope.net`;
   
   return response;
 }
@@ -152,7 +157,7 @@ app.post('/api/chat', async (req, res) => {
     if (wantsQuiz) {
       const quizResponse = `🎯 **Personalized Product Calculator** 🎯
 
-I'll help you find the perfect research products! Please provide your information in this format:
+I'll help you find the perfect products! Please provide your information in this format:
 
 **"current_weight, goal_weight, timeframe, goal_type, experience"**
 
@@ -197,21 +202,22 @@ Just type your answers in the format above 👆`;
       `- ${p.name}: €${p.price} | ${p.permalink}`
     ).join('\n');
 
-    const systemPrompt = `You are PepEurope Research Assistant. You provide information about research peptides for educational purposes.
+    const systemPrompt = `You are PepEurope Customer Support Assistant. You provide information about our premium peptide products.
 
 ABSOLUTE RULES:
 1. ONLY recommend products that exist in the PRODUCT LIST below
 2. NEVER make up products, prices, or URLs
 3. When recommending products, use EXACT URLs from the list
-4. All products are for RESEARCH/EDUCATIONAL purposes only - no medical advice
+4. Be helpful, professional, and sales-oriented
 5. If unsure, direct to email: sales@pepeurope.net
 6. Keep responses professional and concise
-7. Be helpful and friendly
+
+IMPORTANT: You are assisting REAL CUSTOMERS with REAL PRODUCTS we actually sell.
 
 PRODUCT LIST:
 ${productKnowledge}
 
-Respond helpfully and professionally:`;
+Respond as a helpful customer support representative:`;
 
     // CORRECT OpenAI API call
     const completion = await openai.createChatCompletion({
@@ -241,20 +247,18 @@ Respond helpfully and professionally:`;
 
 // Welcome message endpoint
 app.get('/api/welcome', (req, res) => {
-  const welcomeMessage = `👋 **Welcome to PepEurope Research Assistant!** 
+  const welcomeMessage = `👋 **Welcome to PepEurope Premium Peptides!** 
 
-I'm here to help you with research peptide information and product recommendations.
+I'm here to help you with our premium peptide products and personalized recommendations.
 
 🎯 **Personalized Product Calculator Available!**
 Get customized recommendations based on your specific goals.
 
 💡 **You can ask me about:**
 - Product information and prices
-- Shipping and returns policy
-- Research peptide uses
+- Shipping and delivery options
+- Product usage guidance
 - Personalized recommendations
-
-📝 **Remember:** All the suggested products are for live and available on the store.
 
 Type "calculator" to get started or ask me anything!`;
 
@@ -268,7 +272,4 @@ app.get('/health', (req, res) => {
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`✅ PepEurope AI server running on port ${port}`);
-  console.log(`✅ Calculator feature: ACTIVE`);
-  console.log(`✅ Welcome message: ENABLED`);
-  console.log(`✅ WooCommerce connection: READY`);
 });
