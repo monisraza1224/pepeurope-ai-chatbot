@@ -61,18 +61,121 @@ async function getWebsiteProducts() {
   }
 }
 
+// AI Quiz/Calculator System
+async function runAICalculator(userData) {
+  const { currentWeight, goalWeight, timeframe, goalType, experience } = userData;
+  
+  const weightToLose = currentWeight - goalWeight;
+  const weeklyGoal = weightToLose / timeframe;
+  
+  let intensity = 'beginner';
+  if (weeklyGoal > 1.0) intensity = 'intermediate';
+  if (weeklyGoal > 1.5) intensity = 'advanced';
+  
+  const products = await getWebsiteProducts();
+  const productKnowledge = products.map(p => 
+    `- ${p.name}: €${p.price} | ${p.permalink}`
+  ).join('\n');
+
+  const systemPrompt = `
+You are PepEurope's AI Fitness Calculator. Based on user data, recommend products and create a personalized plan.
+
+USER DATA:
+- Current Weight: ${currentWeight} kg
+- Goal Weight: ${goalWeight} kg  
+- Timeframe: ${timeframe} weeks
+- Weight to lose: ${weightToLose} kg
+- Weekly goal: ${weeklyGoal.toFixed(1)} kg/week
+- Goal Type: ${goalType}
+- Experience: ${experience}
+- Intensity Level: ${intensity}
+
+PRODUCTS AVAILABLE:
+${productKnowledge}
+
+Create a personalized response that:
+1. Acknowledges their goal of losing ${weightToLose} kg in ${timeframe} weeks
+2. Explains this is ${intensity} intensity (${weeklyGoal.toFixed(1)} kg/week)
+3. Recommends 2-3 specific products from the list above with exact URLs
+4. Provides brief educational information about each product
+5. Mentions this is for research purposes only
+6. Encourages consulting healthcare professionals
+7. Keep it warm, professional, and encouraging
+
+Response format: Use bullet points and product links.`;
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [
+      {
+        role: "system",
+        content: systemPrompt
+      },
+      {
+        role: "user",
+        content: "Create my personalized plan based on the data above."
+      }
+    ],
+    max_tokens: 300,
+    temperature: 0.7
+  });
+
+  return completion.choices[0].message.content;
+}
+
 // API endpoint for chat
 app.post('/api/chat', async (req, res) => {
   try {
     const userMessage = req.body.message;
-    const products = await getWebsiteProducts();
+    
+    // Check if user wants to start quiz/calculator
+    if (userMessage.toLowerCase().includes('calculator') || 
+        userMessage.toLowerCase().includes('quiz') ||
+        userMessage.toLowerCase().includes('recommend') ||
+        userMessage.toLowerCase().includes('weight loss') ||
+        userMessage.toLowerCase().includes('personalized')) {
+      
+      const quizResponse = `🎯 **Personalized Product Calculator** 🎯
 
-    // Create product knowledge string
+I'd love to help you find the perfect research products! Let's run a quick assessment:
+
+Please provide your information in this format:
+**"current_weight, goal_weight, timeframe, goal_type, experience"**
+
+Example: "85, 70, 12, weight_loss, beginner"
+
+- **Current Weight** (kg)
+- **Goal Weight** (kg)  
+- **Timeframe** (weeks)
+- **Goal Type**: weight_loss / muscle_gain / wellness
+- **Experience**: beginner / intermediate / advanced`;
+
+      return res.json({ reply: quizResponse });
+    }
+
+    // Check if user is providing quiz answers (format: "85, 70, 12, weight_loss, beginner")
+    if (userMessage.match(/^\d+,\s*\d+,\s*\d+,\s*\w+,\s*\w+$/)) {
+      const [currentWeight, goalWeight, timeframe, goalType, experience] = 
+        userMessage.split(',').map(item => item.trim());
+      
+      const userData = {
+        currentWeight: parseInt(currentWeight),
+        goalWeight: parseInt(goalWeight),
+        timeframe: parseInt(timeframe),
+        goalType: goalType.toLowerCase(),
+        experience: experience.toLowerCase()
+      };
+      
+      const aiResponse = await runAICalculator(userData);
+      return res.json({ reply: aiResponse });
+    }
+
+    // Regular chat processing
+    const products = await getWebsiteProducts();
     const productKnowledge = products.map(p => 
       `- ${p.name}: €${p.price} | ${p.permalink}`
     ).join('\n');
 
-    // System Prompt with all your data
     const systemPrompt = `
 You are PepEurope Research Assistant. You provide information about research peptides for educational purposes.
 
@@ -91,25 +194,8 @@ COMPANY INFORMATION:
 - Address: ${companyData.info.address}
 - Telegram: ${companyData.info.telegram}
 
-SHIPPING POLICY:
-${companyData.policies.shipping}
-
-RETURN POLICY:
-${companyData.policies.returns}
-
-PRODUCT CATEGORIES:
-- Slimming Peptides: ${companyData.productCategories.slimmingPeptides}
-- Longevity Peptides: ${companyData.productCategories.longevityPeptides}
-- Weight Loss Peptides: ${companyData.productCategories.weightLossPeptides}
-- All Products: ${companyData.productCategories.allProducts}
-- In Stock: ${companyData.productCategories.inStock}
-- On Sale: ${companyData.productCategories.onSale}
-
 PRODUCT LIST:
 ${productKnowledge}
-
-DISCLAIMER:
-${companyData.policies.disclaimer}
 
 Respond helpfully and professionally:`;
 
@@ -144,5 +230,5 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(port, '0.0.0.0', () => {
-  console.log(`PepEurope AI server running on port ${port}`);
+  console.log(`PepEurope AI server with calculator running on port ${port}`);
 });
