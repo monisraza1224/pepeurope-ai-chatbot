@@ -32,13 +32,13 @@ const productRecommendations = {
         name: "AOD-9604 5mg", 
         url: "https://pepeurope.net/en/product/aod-9604-5mg/", 
         price: "€59.99",
-        description: "Supports metabolism and fat loss"
+        description: "Wspomaga metabolizm i utratę tłuszczu"
       },
       { 
         name: "Metabo MIC Energy", 
         url: "https://pepeurope.net/en/product/metabo-mic-energy/", 
         price: "€65.99",
-        description: "For energy and metabolic support"
+        description: "Do wsparcia energetycznego i metabolicznego"
       }
     ],
     intermediate: [
@@ -46,7 +46,7 @@ const productRecommendations = {
         name: "RetaTirz Complex 10 mg", 
         url: "https://pepeurope.net/product/retatirz-complex-weight-10mg/", 
         price: "€89.99",
-        description: "Advanced formula for weight management"
+        description: "Zaawansowana formuła do zarządzania wagą"
       }
     ],
     advanced: [
@@ -54,13 +54,13 @@ const productRecommendations = {
         name: "Survo 12 mg", 
         url: "https://pepeurope.net/product/survo-12mg/", 
         price: "€79.99",
-        description: "For intensive weight management"
+        description: "Do intensywnego zarządzania wagą"
       },
       { 
         name: "Tesamorelin 5mg", 
         url: "https://pepeurope.net/en/product/tesamorelin-5mg/", 
         price: "€72.99",
-        description: "Advanced compound for body composition"
+        description: "Zaawansowany składnik do kompozycji ciała"
       }
     ]
   },
@@ -69,7 +69,7 @@ const productRecommendations = {
       name: "GHRP-6", 
       url: "https://pepeurope.net/en/product/ghrp-6-5mg/", 
       price: "€67.99",
-      description: "For muscle growth and recovery"
+      description: "Do wzrostu mięśni i regeneracji"
     }
   ],
   wellness: [
@@ -77,7 +77,7 @@ const productRecommendations = {
       name: "BPC-157", 
       url: "https://pepeurope.net/en/product/bpc-157-5mg/", 
       price: "€61.99",
-      description: "For wellness and recovery"
+      description: "Do dobrego samopoczucia i regeneracji"
     }
   ]
 };
@@ -96,7 +96,7 @@ async function getWebsiteProducts() {
   }
 }
 
-// AI Quiz/Calculator Function
+// AI Quiz/Calculator Function - POLISH VERSION
 function calculateProductRecommendation(userData) {
   const { currentWeight, goalWeight, timeframe, goalType, experience } = userData;
   
@@ -118,29 +118,29 @@ function calculateProductRecommendation(userData) {
     recommendedProducts = productRecommendations.wellness;
   }
   
-  // Create personalized message
-  let response = `🎯 **Personalized Recommendation Based on Your Goals** 🎯\n\n`;
-  response += `Based on your input:\n`;
-  response += `- Current Weight: ${currentWeight} kg\n`;
-  response += `- Goal Weight: ${goalWeight} kg\n`;
-  response += `- Timeframe: ${timeframe} weeks\n`;
-  response += `- Weight to lose: ${weightToLose} kg (${weeklyGoal.toFixed(1)} kg/week)\n`;
-  response += `- Intensity: ${intensity} level\n\n`;
+  // Create personalized message in POLISH
+  let response = `🎯 **Spersonalizowana rekomendacja na podstawie Twoich celów** 🎯\n\n`;
+  response += `Na podstawie Twoich danych:\n`;
+  response += `- Obecna waga: ${currentWeight} kg\n`;
+  response += `- Docelowa waga: ${goalWeight} kg\n`;
+  response += `- Ram czasowy: ${timeframe} tygodni\n`;
+  response += `- Waga do utraty: ${weightToLose} kg (${weeklyGoal.toFixed(1)} kg/tydzień)\n`;
+  response += `- Poziom intensywności: ${intensity}\n\n`;
   
-  response += `💡 **Recommended Premium Products:**\n\n`;
+  response += `💡 **Rekomendowane produkty premium:**\n\n`;
   
   recommendedProducts.forEach(product => {
     response += `• **${product.name}** (${product.price}) - ${product.description}\n`;
-    response += `  🔗 <a href="${product.url}" target="_blank" class="product-link">View Product</a>\n\n`;
+    response += `  🔗 <a href="${product.url}" target="_blank" class="product-link">Zobacz Produkt</a>\n\n`;
   });
   
-  response += `🌟 **Why choose PepEurope?**\n`;
-  response += `- Pharmaceutical-grade quality\n`;
-  response += `- Third-party tested for purity\n`;
-  response += `- Fast worldwide shipping\n`;
-  response += `- Expert customer support\n\n`;
+  response += `🌟 **Dlaczego warto wybrać PepEurope?**\n`;
+  response += `- Jakość farmaceutyczna\n`;
+  response += `- Testy第三方 na czystość\n`;
+  response += `- Szybka wysyłka worldwide\n`;
+  response += `- Eksperckie wsparcie klienta\n\n`;
   
-  response += `💬 **Have questions?** Our specialists are available at sales@pepeurope.net`;
+  response += `💬 **Masz pytania?** Nasi specjaliści są dostępni pod sales@pepeurope.net`;
   
   return response;
 }
@@ -149,27 +149,31 @@ function calculateProductRecommendation(userData) {
 app.post('/api/chat', async (req, res) => {
   try {
     const userMessage = req.body.message;
+    const language = req.body.language || 'polish'; // Default to Polish
     
-    // Check if user wants to start quiz/calculator
-    const quizTriggers = ['calculator', 'quiz', 'recommend', 'weight loss', 'personalized', 'lose weight', 'goal', 'diet', 'fitness'];
-    const wantsQuiz = quizTriggers.some(trigger => userMessage.toLowerCase().includes(trigger));
+    // Check if user wants to start quiz/calculator - POLISH TRIGGERS
+    const quizTriggersPolish = ['kalkulator', 'quiz', 'polec', 'utrata wagi', 'spersonaliz', 'schudn', 'cel', 'dieta', 'fitness'];
+    const quizTriggersEnglish = ['calculator', 'recommend', 'weight loss', 'personalized', 'lose weight', 'goal', 'diet', 'fitness'];
+    
+    const wantsQuiz = quizTriggersPolish.some(trigger => userMessage.toLowerCase().includes(trigger)) || 
+                     quizTriggersEnglish.some(trigger => userMessage.toLowerCase().includes(trigger));
     
     if (wantsQuiz) {
-      const quizResponse = `🎯 **Personalized Product Calculator** 🎯
+      const quizResponse = `🎯 **Spersonalizowany Kalkulator Produktów** 🎯
 
-I'll help you find the perfect products! Please provide your information in this format:
+Pomogę Ci znaleźć idealne produkty! Proszę podaj swoje informacje w tym formacie:
 
-**"current_weight, goal_weight, timeframe, goal_type, experience"**
+**"obecna_waga, docelowa_waga, czas_trwania, typ_celu, doświadczenie"**
 
-📋 **Example:** "85, 70, 12, weight_loss, beginner"
+📋 **Przykład:** "85, 70, 12, weight_loss, beginner"
 
-• **Current Weight** (kg) - Your current weight
-• **Goal Weight** (kg) - Your target weight  
-• **Timeframe** (weeks) - How many weeks to reach your goal
-• **Goal Type** - weight_loss / muscle_gain / wellness
-• **Experience** - beginner / intermediate / advanced
+• **Obecna waga** (kg) - Twoja obecna waga
+• **Docelowa waga** (kg) - Twoja docelowa waga  
+• **Czas trwania** (tygodnie) - Ile tygodni do osiągnięcia celu
+• **Typ celu** - weight_loss / muscle_gain / wellness
+• **Doświadczenie** - beginner / intermediate / advanced
 
-Just type your answers in the format above 👆`;
+Wpisz swoje odpowiedzi w formacie pokazanym powyżej 👆`;
 
       return res.json({ reply: quizResponse });
     }
@@ -181,7 +185,7 @@ Just type your answers in the format above 👆`;
       
       // Validate inputs
       if (currentWeight <= goalWeight && goalType === 'weight_loss') {
-        return res.json({ reply: "Please ensure your current weight is higher than your goal weight for weight loss goals." });
+        return res.json({ reply: "Proszę upewnij się, że obecna waga jest wyższa niż docelowa waga dla celów utraty wagi." });
       }
       
       const userData = {
@@ -202,22 +206,24 @@ Just type your answers in the format above 👆`;
       `- ${p.name}: €${p.price} | ${p.permalink}`
     ).join('\n');
 
-    const systemPrompt = `You are PepEurope Customer Support Assistant. You provide information about our premium peptide products.
+    // POLISH SYSTEM PROMPT
+    const systemPrompt = `Jesteś Asystentem Obsługi Klienta PepEurope. Podajesz informacje o naszych premium produktach peptydowych.
 
-ABSOLUTE RULES:
-1. ONLY recommend products that exist in the PRODUCT LIST below
-2. NEVER make up products, prices, or URLs
-3. When recommending products, use EXACT URLs from the list
-4. Be helpful, professional, and sales-oriented
-5. If unsure, direct to email: sales@pepeurope.net
-6. Keep responses professional and concise
+ABSOLUTNE ZASADY:
+1. TYLKO rekomenduj produkty, które istnieją w LIŚCIE PRODUKTÓW poniżej
+2. NIGDY nie wymyślaj produktów, cen ani URL-i
+3. Kiedy rekomendujesz produkty, używaj DOKŁADNYCH URL-i z listy
+4. Bądź pomocny, profesjonalny i zorientowany na sprzedaż
+5. Jeśli nie jesteś pewien, przekieruj na email: sales@pepeurope.net
+6. Zachowuj odpowiedzi profesjonalne i zwięzłe
+7. Mów naturalnie po polsku
 
-IMPORTANT: You are assisting REAL CUSTOMERS with REAL PRODUCTS we actually sell.
+WAŻNE: Pomagasz PRAWDZIWYM KLIENTOM z PRAWDZIWYMI PRODUKTAMI, które faktycznie sprzedajemy.
 
-PRODUCT LIST:
+LISTA PRODUKTÓW:
 ${productKnowledge}
 
-Respond as a helpful customer support representative:`;
+Odpowiadaj jako pomocny przedstawiciel obsługi klienta po polsku:`;
 
     // CORRECT OpenAI API call
     const completion = await openai.createChatCompletion({
@@ -241,26 +247,26 @@ Respond as a helpful customer support representative:`;
 
   } catch (error) {
     console.error("Server Error:", error);
-    res.status(500).json({ error: "Connection issue. Please email us at sales@pepeurope.net" });
+    res.status(500).json({ error: "Problem z połączeniem. Proszę napisz do nas na sales@pepeurope.net" });
   }
 });
 
-// Welcome message endpoint
+// Welcome message endpoint - POLISH
 app.get('/api/welcome', (req, res) => {
-  const welcomeMessage = `👋 **Welcome to PepEurope Premium Peptides!** 
+  const welcomeMessage = `👋 **Witaj w PepEurope Premium Peptides!** 
 
-I'm here to help you with our premium peptide products and personalized recommendations.
+Jestem tutaj, aby pomóc Ci z naszymi premium produktami peptydowymi i spersonalizowanymi rekomendacjami.
 
-🎯 **Personalized Product Calculator Available!**
-Get customized recommendations based on your specific goals.
+🎯 **Dostępny Spersonalizowany Kalkulator Produktów!**
+Otrzymaj dostosowane rekomendacje based on your specific goals.
 
-💡 **You can ask me about:**
-- Product information and prices
-- Shipping and delivery options
-- Product usage guidance
-- Personalized recommendations
+💡 **Możesz mnie zapytać o:**
+- Informacje o produktach i ceny
+- Opcje wysyłki i dostawy
+- Wskazówki dotyczące użycia produktów
+- Spersonalizowane rekomendacje
 
-Type "calculator" to get started or ask me anything!`;
+Wpisz "kalkulator" aby rozpocząć lub zadaj mi pytanie!`;
 
   res.json({ reply: welcomeMessage });
 });
@@ -271,5 +277,7 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(port, '0.0.0.0', () => {
-  console.log(`✅ PepEurope AI server running on port ${port}`);
+  console.log(`✅ PepEurope AI server działa na porcie ${port}`);
+  console.log(`✅ Tryb językowy: POLSKI`);
+  console.log(`✅ Kalkulator: AKTYWNY`);
 });
